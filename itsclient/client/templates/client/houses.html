@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+var templist=[];
+{% for item in data %}
+  var H1={{ item.lat }};
+	var H2={{ item.lon }};
+  var H3={{ item.id }};
+  var H4={{ item.income}};
+  var H5={{ item.doorno}};
+  var H6={{ item.noofmem}};
+  templist.push(H1);
+  templist.push(H2);
+  templist.push(H3);
+  templist.push(H4);
+  templist.push(H5);
+  templist.push(H6);
+{% endfor %}
+
+var details=[];
+{% for item in data1 %}
+  var H1={{ item.house }};
+  var H2="{{ item.name }}";
+  var H3="{{ item.gender }}";
+  var H4={{ item.age }};
+  details.push(H1);
+  details.push(H2);
+  details.push(H3);
+  details.push(H4);
+{% endfor %}
+
+var photos=[];
+{% for item in data2 %}
+  var H1={{ item.id }};
+  var H2="{{ item.photo }}";
+  var H3={{ item.house }};
+  photos.push(H1);
+  photos.push(H2);
+  photos.push(H3);
+{% endfor %}
+
+</script>
+
+
+
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple markers</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      var map;
+      function initMap() {
+        console.log(templist);
+        console.log(details);
+        console.log(photos);
+        map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 32,
+        center: new google.maps.LatLng(12.5114887, 80.043983),
+        mapTypeId: 'roadmap'
+        });
+        k=0;
+        //var features=[]
+        var con=[];
+        for (i=0;i < templist.length ; i=i+6)
+        {
+            Lat=templist[i];
+            Lon=templist[i+1];
+            mem = templist[i+5];
+            var temp={position: new google.maps.LatLng(Lat,Lon), type: 'house'};
+            //console.log(temp);
+            //features.push(temp);
+            for(j=0;j< details.length; j=j+4)
+            {
+              if(templist[i+2] == details[j])
+              {
+
+                var name= details[j+1];
+                var gender = details[j+2];
+                var age = details[j+3];
+                var income = templist[i+3];
+                var doorno = templist[i+4];
+                for (l=2;l<photos.length;l=l+3)
+                {
+                  if(photos[l]== details[j])
+                  {
+                    var photo = "http://10.0.3.23:1111"+photos[l-1];
+                    console.log(photo);
+                  }
+
+                }
+              }
+
+
+              //else {
+              //  var contextString = '<div id="content">'+
+            // '<div id="siteNotice">'+
+             //'</div>'+
+             //'</div>';
+            //    con.push(contentString);
+            //  }
+              console.log(con[k]);
+            }
+            var contentString = '<div id="content">'+
+         '<div id="siteNotice">'+
+         '</div>'+
+         '<div id="bodyContent">'+
+         '<p><h5>Latitude: '+Lat.toString()+'</h5></p>' +
+         '<p><h5>Longitude: '+Lon.toString()+'</h5></p>' +
+         '<p><h5>Name: '+name.toString()+'</h5></p>' +
+         '<p><h5>Gender: '+gender.toString()+'</h5></p>' +
+         '<p><h5>Age: '+age.toString()+'</h5></p>' +
+         '<p><h5>Income: '+income.toString()+'</h5></p>' +
+         '<p><h5>DoorNo.: '+doorno.toString()+'</h5></p>' +
+         '<p><h5>Members.: '+mem.toString()+'</h5></p>' +
+         '<p> <img src= '+photo+' alt="Mountain View" style="width:304px;height:228px;"> </p>'+
+         '</div>' +
+         '</div>';
+         con.push(contentString);
+         console.log(contentString);
+            createMarker(k,Lat,Lon,mem);
+            k++;
+        }
+
+        function createMarker(k,Lat,Lon,mem){
+          console.log(mem);
+          var place = {lat :Lat, lng: Lon};
+          infowindow = new google.maps.InfoWindow();
+          if(mem<=3){
+          var marker = new google.maps.Marker({
+          position: place,
+          icon: "/static/images/green.png",
+          map: map
+        });
+      }
+          if(mem>3 && mem<=6){
+            var marker = new google.maps.Marker({
+            position: place,
+            icon: "/static/images/blue.png",
+            map: map
+          });
+        }
+          if(mem>6)
+          {
+            var marker = new google.maps.Marker({
+            position: place,
+            icon: "/static/images/red.png",
+            map: map
+
+          });
+        }
+          marker.addListener('click' , function() {
+          infowindow.setContent(con[k]);
+          infowindow.open(map,marker);
+        });
+        }
+
+        //var infowindow = new google.maps.InfoWindow({
+      //    content: details
+      //  });
+
+        //features.forEach(function(feature){
+        //  var marker = new google.maps.Marker({
+        //    position: feature.position,
+        //    icon: "/static/images/house.png",
+        //    map: map
+        //  });
+      //    marker.addListener('click', function() {
+      //    infowindow.open(map, marker);
+
+
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiagBm99wkI5tOWuKdCF9bV4Au2wiNyqg&callback=initMap">
+    </script>
+  </body>
+</html>

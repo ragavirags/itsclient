@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script><script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-latest.min.js"></script>
+<script>
+
+var templist=[];
+{% for item in data %}
+  var H1={{ item.lat }};
+  var H2={{ item.lon }};
+  var H3={{ item.id }};
+  var H4="{{ item.season}}";
+  var H5={{ item.farm}};
+  templist.push(H1);
+  templist.push(H2);
+  templist.push(H3);
+  templist.push(H4);
+  templist.push(H5);
+{% endfor %}
+
+var farms=[];
+{% for item in data1 %}
+  var H1={{ item.id }};
+  var H2={{ item.area }};
+  var H3={{ item.house }};
+  farms.push(H1);
+  farms.push(H2);
+  farms.push(H3);
+{% endfor %}
+
+
+var details=[];
+{% for item in data2 %}
+  var H1={{ item.house }};
+  var H2="{{ item.name }}";
+  var H3="{{ item.gender }}";
+  var H4= {{ item.age }};
+  details.push(H1);
+  details.push(H2);
+  details.push(H3);
+  details.push(H4);
+{% endfor %}
+
+
+
+var crops=[];
+{% for item in data3 %}
+  var H1={{ item.farm }};
+  var H2="{{ item.season }}";
+  var H3="{{ item.year }}";
+  var H4= {{ item.paddypercent }};
+  var H5= {{ item.wheatpercent }};
+  var H6= {{ item.maizepercent }};
+  var H7= {{item.cornpercent}};
+  var H8= {{ item.canepercent }};
+  var H9= {{ item.spicespercent }};
+  var H10= {{ item.oilseedspercent }};
+  crops.push(H1);
+  crops.push(H2);
+  crops.push(H3);
+  crops.push(H4);
+  crops.push(H5);
+  crops.push(H6);
+  crops.push(H7);
+  crops.push(H8);
+  crops.push(H9);
+  crops.push(H10);
+{% endfor %}
+
+
+</script>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple markers</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+
+<div id="map_canvas" style="height: 1000px; width: 1000px"></div>
+<script>
+google.load( 'visualization', '1', { packages:['corechart'] });
+
+function ChartMarker( options ) {
+    this.setValues( options );
+
+    this.$inner = $('<div>').css({
+        position: 'relative',
+        left: '-50%', top: '-50%',
+        width: options.width,
+        height: options.height,
+        fontSize: '1px',
+        lineHeight: '1px',
+        border: '1px solid #888',
+        padding: '2px',
+        backgroundColor: '#ffffff',
+        cursor: 'default'
+    });
+
+    this.$div = $('<div>')
+        .append( this.$inner )
+        .css({
+            position: 'absolute',
+            display: 'none'
+        });
+};
+
+ChartMarker.prototype = new google.maps.OverlayView;
+
+ChartMarker.prototype.onAdd = function() {
+    $( this.getPanes().overlayMouseTarget ).append( this.$div );
+};
+
+ChartMarker.prototype.onRemove = function() {
+    this.$div.remove();
+};
+
+ChartMarker.prototype.draw = function() {
+    var marker = this;
+    var projection = this.getProjection();
+    var position = projection.fromLatLngToDivPixel( this.get('position') );
+
+    this.$div.css({
+        left: position.x,
+        top: position.y,
+        display: 'block'
+    })
+
+    this.$inner
+        .html( '<img src="' + this.get('image') + '"/>' )
+        .click( function( event ) {
+            var events = marker.get('events');
+            events && events.click( event );
+        });
+
+    this.chart = new google.visualization.PieChart( this.$inner[0] );
+    this.chart.draw( this.get('chartData'), this.get('chartOptions') );
+
+};
+function initMap() {
+  console.log(templist);
+  console.log(farms);
+  console.log(details);
+  console.log(crops);
+  var map = new google.maps.Map( $('#map_canvas')[0], {
+        zoom: 7,
+        center: new google.maps.LatLng( 13.5910967, 80.0322515),
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+    var k=0;
+    var con=[];
+    console.log(k);
+    for (var i=0;i < templist.length ; i=i+5)
+    {
+        Lat=templist[i];
+        Lon=templist[i+1];
+        var temp={position: new google.maps.LatLng(Lat,Lon), type: 'house'};
+        console.log(temp);
+        farm=templist[i+4];
+        for(j=0;j < crops.length; j=j+10)
+        {
+          if(templist[i+4] == crops[j])
+          {
+            var data = google.visualization.arrayToDataTable([
+              [ 'Crop', 'Percent'],
+              [ 'Paddy', crops[j+3]],
+              [ 'Wheat', crops[j+4]],
+              [ 'Maize', crops[j+5]],
+              [ 'Corn', crops[j+6]],
+              [ 'Sugarcane', crops[j+7]],
+              [ 'Spices', crops[j+8]],
+              [ 'Oilseeds', crops[j+9]],
+              ]);
+              console.log(typeof(data));
+              console.log(data);
+              con.push(data);
+
+          }
+        }
+        var options = {
+        title: 'Crops',
+        fontSize: 8
+    };
+    var place = new google.maps.LatLng( Lat,Lon);
+console.log(con[k]);
+    var marker = new ChartMarker({
+       map: map,
+
+       position: place,
+       width: '250px',
+       height: '100px',
+       chartData: con[k],
+       chartOptions: options,
+       events: {
+          /* click: function( event ) {
+               alert( 'Clicked marker' );
+           }*/
+       }
+   });
+    console.log(con[k]);
+    k++;
+  }
+   /*function createMarker(k,Lat,Lon){
+     var place = {lat :Lat, lng: Lon};
+console.log(con[k]);
+     var marker = new ChartMarker({
+        map: map,
+
+        position: place,
+        width: '250px',
+        height: '100px',
+        chartData: con[k],
+        chartOptions: options,
+        events: {
+            click: function( event ) {
+                alert( 'Clicked marker' );
+            }
+        }
+    });*/
+//};
+}
+  /*  <div id="map"></div>
+      var map;
+      function initMap() {
+        console.log(templist);
+        console.log(farms);
+        console.log(details);
+        console.log(crops);
+        map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 16,
+        center: new google.maps.LatLng( 13.5910967, 80.0322515),
+        mapTypeId: 'roadmap'
+        });
+        k=0;
+        //var features=[]
+        var con=[];
+
+        for (i=0;i < templist.length ; i=i+5)
+        {
+            Lat=templist[i];
+            Lon=templist[i+1];
+            var temp={position: new google.maps.LatLng(Lat,Lon), type: 'house'};
+            //console.log(temp);
+            //features.push(temp);
+            for(j=0;j< farms.length; j=j+3)
+            {
+              if(templist[i+4] == farms[j])
+              {
+
+                var area= farms[j+1];
+                for(l=0;l<details.length;l=l+4)
+              {
+                if(farms[j+2]==details[l])
+                {
+                  var house= details[l];
+                  var name = details[l+1];
+                  var gender= details[l+2];
+                  var age = details[l+3];
+                }
+              }
+            }
+
+
+
+              //else {
+              //  var contextString = '<div id="content">'+
+            // '<div id="siteNotice">'+
+             //'</div>'+
+             //'</div>';
+            //   con.push(contentString);
+            //  }
+            //  console.log(con[k]);
+            }
+          var contentString = '<div id="content">'+
+         '<div id="siteNotice">'+
+         '</div>'+
+         '<div id="bodyContent">'+
+         '<p><h5>Latitude: '+Lat.toString()+'</h5></p>' +
+         '<p><h5>Longitude: '+Lon.toString()+'</h5></p>' +
+         '<p><h5>Name: '+name.toString()+'</h5></p>' +
+         '<p><h5>Gender: '+gender.toString()+'</h5></p>' +
+         '<p><h5>Age: '+age.toString()+'</h5></p>' +
+         '<p><h5>Area: '+area.toString()+'</h5></p>' +
+         '<p><h5>House: '+house.toString()+'</h5></p>' +
+         '</div>' +
+         '</div>';
+          //var contentString='fgdgdgfshgfsghs';
+         con.push(contentString);
+      //   console.log(contentString);
+            createMarker(k,Lat,Lon);
+            k++;
+        }
+
+        function createMarker(k,Lat,Lon){
+          var triangleCoords = [
+              {lat: Lat,lng: Lon+0.00001},
+              {lat: Lat+(0.00000866) , lng: Lon+(0.000005)},
+              {lat: Lat+(0.00000866) , lng: Lon-(0.000005)},
+              {lat: Lat, lng: Lon-0.00001},
+              {lat: Lat-(0.00000866), lng: Lon-(0.000005)},
+              {lat: Lat-(0.00000866) , lng: Lon+(0.000005)}
+
+          ];
+          var place = {lat :Lat, lng: Lon};
+
+          var bermudaTriangle = new google.maps.Polygon({
+         paths: triangleCoords,
+         strokeColor: 'green',
+         strokeOpacity: 0.8,
+         strokeWeight: 3,
+         fillColor: 'green',
+         fillOpacity: 0.5,
+       position: place
+       });
+             infowindow = new google.maps.InfoWindow();
+             bermudaTriangle.setMap(map);
+            google.maps.event.addListener(bermudaTriangle, 'click', function (event) {
+console.log(con[k]);
+              infowindow.setContent(con[k]);
+              infowindow.open(map,bermudaTriangle);
+});
+
+        }
+
+        //var infowindow = new google.maps.InfoWindow({
+      //    content: details
+      //  });
+
+        //features.forEach(function(feature){
+        //  var marker = new google.maps.Marker({
+        //    position: feature.position,
+        //    icon: "/static/images/house.png",
+        //    map: map
+        //  });
+      //    marker.addListener('click', function() {
+      //    infowindow.open(map, marker);
+
+*/
+$(initMap);
+    </script>
+
+  </body>
+</html>
